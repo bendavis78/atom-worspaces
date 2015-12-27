@@ -1,0 +1,23 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+
+.workspaces {
+  display: inline-flex;
+  flex-direction: row;
+}
+.workspaces-workspace {
+  cursor: pointer;
+  width: 22px;
+  color: #666;
+  background: rgba(67, 72, 77, 0.33);
+  text-align: center;
+  border: 1px solid #666;
+}
+
+.workspaces-workspace.active {
+  color: #fff;
+  background: #43484d;
+}

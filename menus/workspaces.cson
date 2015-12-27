@@ -1,0 +1,35 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+  'atom-text-editor': [
+    {
+      'label': 'New workspace'
+      'command': 'workspaces:new-workspace'
+    },
+    {
+      'label': 'Next workspace'
+      'command': 'workspaces:next-workspace'
+    },
+    {
+      'label': 'Previous workspace'
+      'command': 'workspaces:prev-workspace'
+    },
+    {
+      'label': 'Close workspace'
+      'command': 'workspaces:close-workspace'
+    }
+  ]
+
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'workspaces'
+      'submenu': [
+        {
+          'label': 'Toggle'
+          'command': 'workspaces:toggle'
+        }
+      ]
+    ]
+  }
+]

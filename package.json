@@ -1,0 +1,22 @@
+{
+  "name": "workspaces",
+  "main": "./lib/workspaces",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "keywords": [],
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "repository": "https://github.com/atom/workspaces",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "jquery": "^2.1.4"
+  }
+}
