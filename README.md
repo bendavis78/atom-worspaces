@@ -1,5 +1,7 @@
 # workspaces package
 
-A short description of your package.
+Organize your tabs and panes into multiple workspaces.
 
-![A screenshot of your package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+Note: you can use [move-status-items](https://atom.io/packages/move-status-items) to position the workspace indicators.
+
+![screenshot](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)

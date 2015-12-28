@@ -4,11 +4,15 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-.workspaces {
+.workspaces-indicator {
   display: inline-flex;
   flex-direction: row;
+  line-height: 1.8em;
+  box-sizing: border-box;
+  padding: 2px;
 }
-.workspaces-workspace {
+
+.workspaces-indicator-item {
   cursor: pointer;
   width: 22px;
   color: #666;
@@ -17,7 +21,7 @@
   border: 1px solid #666;
 }
 
-.workspaces-workspace.active {
+.workspaces-indicator-item.active {
   color: #fff;
   background: #43484d;
 }

@@ -1,36 +1,37 @@
 module.exports =
-class WorkspacesView
-  constructor: (serializedState) ->
+class WorkspacesIndicatorView
+  constructor: (state) ->
     # Create root element
-    @container = document.createElement('div')
-    @container.classList.add('workspaces')
-    @container.classList.add('inline-block')
-    @body = document.querySelector('body')
+    @element = document.createElement('div')
+    @element.classList.add('workspaces-indicator')
+    @element.classList.add('inline-block')
 
-    @$ = @container.querySelector.bind(@container)
-    @$$ = @container.querySelectorAll.bind(@container)
+    # convenience querySelector methods
+    @$ = @element.querySelector.bind(@element)
+    @$$ = @element.querySelectorAll.bind(@element)
 
   initStatusBar: (statusBar) ->
-    console.log('initStatusBar')
-    @status = statusBar.addLeftTile(item: @container, priority: 1)
+    @status = statusBar.addLeftTile(item: @element, priority: Math.infinity)
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
 
   # Tear down any state and detach
   destroy: ->
-    @container.remove()
+    @element.remove()
 
   create: ->
-    workspaces = @$$('.workspaces-workspace')
-    n = if workspaces then workspaces.length + 1 else 1
-    console.log('n=', n)
+    indicatorItems = @$$('.workspaces-indicator-item')
+    n = if indicatorItems then indicatorItems.length + 1 else 1
+
+    # create indicator item
     div = document.createElement('div')
-    div.classList.add('workspaces-workspace')
+    div.classList.add('workspaces-indicator-item')
     div.innerText = n
     div.addEventListener 'click', =>
       @setActive(parseInt(div.innerText))
-    @container.appendChild(div)
+    @element.appendChild(div)
+
     return n
 
   remove: ->
@@ -38,17 +39,13 @@ class WorkspacesView
     @update()
 
   update: ->
-    for node, i in @$$('.workspaces > div')
+    for node, i in @$$('.workspaces-indicator-item')
       node.innerText = i + 1
 
   getActive: ->
     return parseInt(@$('.active').innerText)
 
   setActive: (num) ->
-    console.log 'setActive', num
-    console.log('currently active:', @$$('.workspaces-workspace.active') ? [])
-    console.log node for node, i in (@$$('.workspaces-workspace.active') ? [])
-    node.classList.remove('active') for node, i in (@$$('.workspaces-workspace.active') ? [])
-    @body.dataset.workspacesActiveWorkspace = num
+    node.classList.remove('active') for node, i in (@$$('.workspaces-indicator-item.active') ? [])
     el = @$("div:nth-child(#{ num })")
     el.classList.add('active') if el

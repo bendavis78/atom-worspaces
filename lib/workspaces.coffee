@@ -1,14 +1,21 @@
-WorkspacesView = require './workspaces-view'
+indicatorView = require './workspaces-indicator-view'
 {CompositeDisposable} = require 'atom'
 
 module.exports = Workspaces =
-  workspacesView: null
+  indicatorView: null
   subscriptions: null
   currentWorkspace: null
+  workspaces: []
 
   activate: (state) ->
-    @workspacesView = new WorkspacesView(state.workspacesViewState)
-    @newWorkspace()
+    @indicatorView = new indicatorView(state.indicatorViewState)
+
+    @atomWorkspace = atom.views.getView(atom.workspace)
+
+    @restore state
+
+    if !@workspaces.length
+      @newWorkspace()
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
@@ -19,29 +26,51 @@ module.exports = Workspaces =
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:next-workspace': => @nextWorkspace()
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:prev-workspace': => @prevWorkspace()
 
+    atom.workspace.observePanes (pane) =>
+      console.log('observed pane', pane.id)
+      paneElement = atom.views.getView pane
+      if (!paneElement.dataset.workspaceId)
+        paneElement.dataset.workspaceId = @indicatorView.getActive()
+
+  restore: (state) ->
+    # restore from saved state
+    if !state
+      return
+
+    if state.workspaces
+      for workspace in state.workspaces
+        @workspaces.push(workspace)
+        @indicatorView.create()
+
+    if state.currentWorspace
+        @indicatorView.setActive state.currentWorkspace
+
   consumeStatusBar: (statusBar) ->
-    @workspacesView.initStatusBar statusBar
+    @indicatorView.initStatusBar statusBar
 
   deactivate: ->
     @subscriptions.dispose()
-    @workspacesView.destroy()
+    @indicatorView.destroy()
 
   newWorkspace: ->
-    n = @workspacesView.create()
-    @workspacesView.setActive n
-    console.log('created workspace')
+    @numWorkspaces++
+    n = @indicatorView.create()
+    @setCurrent n
+
+  setCurrent: (n) ->
+    @currentWorkspace = n
+    @indicatorView.setActive n
+    @atomWorkspace.dataset.workspacesActiveWorkspace = n
 
   closeWorkspace: ->
-    @workspacesView.remove()
+    @indicatorView.remove()
 
-  nextWorkspace: ->
-    @workspacesView.next 1
+  next: ->
+    @setCurrent ((n - 1) % numWorkspaces) + 1
 
-  prevWorkspace: ->
-    @workspacesView.next -1
-
-  gotoWorkspace: (num) ->
-    @workspacesView.setActive num
+  prev: ->
+    @setCurrent ((n - 1) % numWorkspaces) - 1
 
   serialize: ->
-    workspacesViewState: @workspacesView.serialize()
+    workspaces: @workspaces
+    currentWorkspace: @currentWorkspace
