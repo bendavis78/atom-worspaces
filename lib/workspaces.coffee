@@ -36,7 +36,6 @@ module.exports = Workspaces =
     @subscriptions.add atom.workspace.observePanes (pane) => @registerPane pane
 
   registerPane: (pane) ->
-    console.log("observing pane #{pane.id}")
     # make sure we have at least one workspace before registering a apane
     if @numWorkspaces == 0
       @newWorkspace()
@@ -51,14 +50,15 @@ module.exports = Workspaces =
     @subscriptions.add pane.onDidDestroy =>
       paneWorkspace = @paneMapping[pane.id]
       delete @paneMapping[pane.id]
-      if @getWorkspacePanes.length == 0
+      if @getWorkspacePanes(paneWorkspace).length == 0
         @closeWorkspace workspace
 
   getWorkspacePanes: (workspace) ->
-    (p for p, w of @paneMapping when w == paneWorkspace)
+    workspace ?= @currentWorkspace
+    (p for p, w of @paneMapping when w == workspace)
 
   setPaneWorkspace: (pane, n) ->
-    console.debug("Putting pane ##{pane.id} in workspace #{n}")
+    console.debug("putting pane ##{pane.id} in workspace #{n}")
     n ?= @currentWorkspace
 
     while n > @numWorkspaces
@@ -95,7 +95,7 @@ module.exports = Workspaces =
     if !state
       return
 
-    console.debug('Restoring state:', state.paneMapping)
+    console.debug('restoring state:', state.paneMapping)
     if state.paneMapping
       # Panes will be updated as soon as they're observed based on @paneMapping
       @paneMapping = state.paneMapping
@@ -125,7 +125,8 @@ module.exports = Workspaces =
     @createPaneInWorkspace = @numWorkspaces
 
     #create a new intial pane for the workspace
-    if @numWorkspaces > 1 && @getWorkspacePanes.length == 0
+    console.debug("Creating new initial pane? ", @numWorkspaces, @getWorkspacePanes())
+    if @numWorkspaces > 1 && @getWorkspacePanes(@numWorkspaces).length == 0
       root = atom.workspace.paneContainer.root
       if root.children
         lastPane = root.children[root.children.length-1]
