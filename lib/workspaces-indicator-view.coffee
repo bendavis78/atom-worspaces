@@ -1,6 +1,10 @@
+{Emitter} = require 'atom'
+
 module.exports =
 class WorkspacesIndicatorView
   constructor: (state) ->
+    @emitter = new Emitter
+
     # Create root element
     @element = document.createElement('div')
     @element.classList.add('workspaces-indicator')
@@ -10,6 +14,9 @@ class WorkspacesIndicatorView
     @$ = @element.querySelector.bind(@element)
     @$$ = @element.querySelectorAll.bind(@element)
 
+  onItemClicked: (callback) ->
+    @emitter.on 'item-clicked', callback
+
   initStatusBar: (statusBar) ->
     @status = statusBar.addLeftTile(item: @element, priority: Math.infinity)
 
@@ -18,24 +25,26 @@ class WorkspacesIndicatorView
 
   # Tear down any state and detach
   destroy: ->
-    @element.remove()
+    @element.parentNode.removeChild(@element)
+    @emitter.dispose()
 
-  create: ->
+  addItem: ->
     indicatorItems = @$$('.workspaces-indicator-item')
     n = if indicatorItems then indicatorItems.length + 1 else 1
 
     # create indicator item
-    div = document.createElement('div')
-    div.classList.add('workspaces-indicator-item')
+    div = document.createElement 'div'
+    div.classList.add 'workspaces-indicator-item'
     div.innerText = n
     div.addEventListener 'click', =>
-      @setActive(parseInt(div.innerText))
-    @element.appendChild(div)
+      num = parseInt div.innerText
+      @setActive num
+      @emitter.emit 'item-clicked', num
+    @element.appendChild div
 
-    return n
-
-  remove: ->
-    @$$('.current').remove()
+  removeItem: ->
+    active = @$('.active')
+    active.parentNode.removeChild(active)
     @update()
 
   update: ->
