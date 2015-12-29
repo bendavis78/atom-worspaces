@@ -45,7 +45,10 @@ module.exports = Workspaces =
       workspace = @createPaneInWorkspace
       @createPaneInWorkspace = null
 
-    @setPaneWorkspace pane, @paneMapping[pane.id] ? workspace
+    addChildSub = pane.container.getRoot().onDidAddChild (info) =>
+      addChildSub.dispose()
+      pane = info.child
+      @setPaneWorkspace pane, @paneMapping[pane.id] ? workspace
 
     @subscriptions.add pane.onDidDestroy =>
       paneWorkspace = @paneMapping[pane.id]
@@ -112,7 +115,7 @@ module.exports = Workspaces =
     @indicatorView.initStatusBar statusBar
 
   deactivate: ->
-    #@@subscriptions.dispose()
+    @subscriptions.dispose()
     @indicatorView.destroy()
 
   newWorkspace: ->
