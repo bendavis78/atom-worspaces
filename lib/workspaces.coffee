@@ -10,6 +10,7 @@ module.exports = Workspaces =
   paneMapping: {}
   activeItems: {}
   paneIdMapping: {}
+  observedPaneQueue: []
 
   activate: (state) ->
     # TODO: hide entire pane container until panes are properly distributed
@@ -22,20 +23,22 @@ module.exports = Workspaces =
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
-    # Listen for when indicator item is clicked
-    @subscriptions.add @indicatorView.onItemClicked (num) =>
-      @setCurrent num
-
-    # Register command that toggles this view
+    # Register commands
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:new-workspace': => @newWorkspace()
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:close-workspace': => @closeWorkspace()
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:next': => @next()
     @subscriptions.add atom.commands.add 'atom-workspace', 'workspaces:prev': => @prev()
 
-    # Register panes as soon as they're created
-    @subscriptions.add atom.workspace.observePanes (pane) => @registerPane pane
+    # Listen for when indicator item is clicked
+    @subscriptions.add @indicatorView.onItemClicked (num) =>
+      @setCurrent num
+
+    @subscriptions.add atom.workspace.observePanes (pane) =>
+      console.log 'observed', pane.id
+      @registerPane pane
 
   registerPane: (pane) ->
+    console.log('registerPane', pane)
     # make sure we have at least one workspace before registering a apane
     if @numWorkspaces == 0
       @newWorkspace()
@@ -45,12 +48,12 @@ module.exports = Workspaces =
       workspace = @createPaneInWorkspace
       @createPaneInWorkspace = null
 
-    addChildSub = pane.container.getRoot().onDidAddChild (info) =>
-      addChildSub.dispose()
-      pane = info.child
-      @setPaneWorkspace pane, @paneMapping[pane.id] ? workspace
+    # If root pane is not a PaneAxis, we must listen for did-change-flex-scale
+    # so that we can monitor for when the pane is fully added
+    @setPaneWorkspace pane, @paneMapping[pane.id] ? workspace
 
-    @subscriptions.add pane.onDidDestroy =>
+    onDestroyDisposable = pane.onDidDestroy =>
+      onDestroyDisposable.dispose()
       paneWorkspace = @paneMapping[pane.id]
       delete @paneMapping[pane.id]
       if @getWorkspacePanes(paneWorkspace).length == 0
@@ -88,7 +91,15 @@ module.exports = Workspaces =
         delete @activeItems[pane.id]
     else
       paneElement.style.display = '';
-      pane.activate()
+      root = pane.container.getRoot()
+      if pane in root.getPanes()
+        console.log 'activating', pane.id
+        pane.activate()
+      else
+        # We need to defer pane activation for when the child is added
+        root.onDidAddChild (info) =>
+          console.log 'activating after did-add-child', pane.id
+          pane.activate()
       # Restore active pane item
       if @activeItems[pane.id]?
         pane.activateItemAtIndex(@activeItems[pane.id])
@@ -128,8 +139,8 @@ module.exports = Workspaces =
     @createPaneInWorkspace = @numWorkspaces
 
     #create a new intial pane for the workspace
-    console.debug("Creating new initial pane? ", @numWorkspaces, @getWorkspacePanes())
     if @numWorkspaces > 1 && @getWorkspacePanes(@numWorkspaces).length == 0
+      console.debug('creating new initial pane')
       root = atom.workspace.paneContainer.root
       if root.children
         lastPane = root.children[root.children.length-1]
